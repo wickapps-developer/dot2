@@ -21,8 +21,11 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     Button startButton;
+    View layoutDividerLine;
     TextView countdownTimerText;
     TextView livesRemainingText;
+    TextView levelTextView;
+    TextView scoreTextView;
     ImageView dotCircleImage;
     ImageView touchLocationBadImage;
     ImageView touchLocationGoodImage;
@@ -62,9 +65,13 @@ public class MainActivity extends AppCompatActivity {
         countdownTimerText = findViewById(R.id.countdownTimerText);
         livesRemainingText = findViewById(R.id.livesRemainingText);
 
+        levelTextView = findViewById(R.id.levelTextView);
+        scoreTextView = findViewById(R.id.scoreTextView);
+
         dotCircleImage = findViewById(R.id.dotCircleImage);
         touchLocationBadImage = findViewById(R.id.touchLocationBadImage);
         touchLocationGoodImage = findViewById(R.id.touchLocationGoodImage);
+        layoutDividerLine = findViewById(R.id.layoutDividerLine);
 
         mainLayout = findViewById(R.id.mainLayout);
 
@@ -109,12 +116,13 @@ public class MainActivity extends AppCompatActivity {
                             DisplayMetrics outMetrics = new DisplayMetrics ();
                             display.getMetrics(outMetrics);
 
-                            float density  = getResources().getDisplayMetrics().density;
-                            float dpWidth  = outMetrics.widthPixels / density;
-                            float dpHeight = outMetrics.heightPixels / density;
+                            float dpWidth  = outMetrics.widthPixels;
+                            float dpHeight = outMetrics.heightPixels;
+
+                            float dividerHeight = layoutDividerLine.getY();
 
 
-                            int[] dotPosition = currentGame.getDotPlacement(dpWidth, dpHeight);
+                            int[] dotPosition = currentGame.getDotPlacement(dpWidth, dpHeight, dividerHeight);
 
                             dotCircleImage.setX(dotPosition[WIDTH]);
                             dotCircleImage.setY(dotPosition[HEIGHT]);
@@ -152,9 +160,11 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Circle X: " + currentGame.getDotWidth() + " Circle Y: " + currentGame.getDotHeight(), Toast.LENGTH_SHORT).show();
                     int distance = currentGame.getTouchDistanceFromDot(x, y);
 
+
+
                     countdownTimerText.setText(differenceInMillis + "X - " + x + " Y - " + y + "Difference: " + distance);
 
-                    if(distance <= 500) {
+                    if(distance <= currentGame.getLevelDistanceLimit()) {
                         touchLocationGoodImage.setX(x);
                         touchLocationGoodImage.setY(y);
                         touchLocationGoodImage.setVisibility(View.VISIBLE);
@@ -162,6 +172,17 @@ public class MainActivity extends AppCompatActivity {
                         touchLocationBadImage.setX(x);
                         touchLocationBadImage.setY(y);
                         touchLocationBadImage.setVisibility(View.VISIBLE);
+                    }
+
+                    boolean isGameOver = currentGame.getResults(differenceInMillis, distance);
+
+                    if(isGameOver) {
+                        startActivity(new Intent(MainActivity.this, MainMenuAndResults.class));
+                        finish();
+                    } else {
+                        levelTextView.setText(currentGame.getLevel() + "");
+                        scoreTextView.setText(currentGame.getScore() + "");
+                        livesRemainingText.setText(currentGame.getLivesRemaining() + "");
                     }
 
                 } else {

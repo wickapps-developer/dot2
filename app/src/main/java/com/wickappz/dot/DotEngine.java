@@ -1,6 +1,11 @@
 package com.wickappz.dot;
 
+import android.util.Log;
+
 import java.util.Random;
+import java.util.logging.Logger;
+
+import static android.content.ContentValues.TAG;
 
 public class DotEngine {
 
@@ -10,6 +15,7 @@ public class DotEngine {
 
     Long startTime;
     Long finishTime;
+
     int livesRemaining;
 
     int dotHeight;
@@ -22,16 +28,31 @@ public class DotEngine {
     boolean inTapMode;
     boolean isFalseStart;
 
-    public void DotEngine() {
+    public int level;
+    public long score;
 
+    public int levelTimeLimit;
+    public int levelDistanceLimit;
+
+    public DotEngine() {
+        level = 1;
+        score = 0;
+
+        livesRemaining = 3;
+
+        levelTimeLimit = 1000;
+        levelDistanceLimit = 750;
     }
 
-    public int[] getDotPlacement(float width, float height) {
+    public int[] getDotPlacement(float width, float height, float maxHeight) {
         int[] circlePlacement = new int[2];
         Random rand = new Random();
 
+        // 150 dp can not be used since it is for the top scoring layout
+        int usableHeight = (int) height - (int) maxHeight;
+
         dotWidth = rand.nextInt((int) width);
-        dotHeight = rand.nextInt((int) height);
+        dotHeight = rand.nextInt((int) usableHeight) + (int) maxHeight;
 
         circlePlacement[0] = dotWidth;
         circlePlacement[1] = dotHeight;
@@ -46,6 +67,39 @@ public class DotEngine {
         int difference = (int) Math.hypot(dotWidth - touchWidth, dotHeight - touchHeight);
 
         return difference;
+    }
+
+    // Returning true indicates the game is over
+    public boolean getResults(long time, int distance) {
+
+        if(time > levelTimeLimit || distance > levelDistanceLimit) {
+            livesRemaining--;
+
+            if(livesRemaining == 0) {
+                return true;
+            }
+        } else {
+
+            score += ((levelTimeLimit - time) + (levelDistanceLimit - distance)) * (level);
+            levelIncrease();
+
+        }
+
+        return false;
+    }
+
+    public void levelIncrease() {
+        level++;
+
+        if(level % 5 == 0) {
+            levelTimeLimit -= 25;
+        }
+
+        if(level % 10 == 0) {
+            levelDistanceLimit -= 50;
+        }
+
+        System.out.println("New Level! Level " + level + ": Time - " + levelTimeLimit + " | Distance - " + levelDistanceLimit);
     }
 
 
@@ -87,6 +141,46 @@ public class DotEngine {
 
     public void setTouchWidth(int touchWidth) {
         this.touchWidth = touchWidth;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public long getScore() {
+        return score;
+    }
+
+    public void setScore(long score) {
+        this.score = score;
+    }
+
+    public int getLivesRemaining() {
+        return livesRemaining;
+    }
+
+    public void setLivesRemaining(int livesRemaining) {
+        this.livesRemaining = livesRemaining;
+    }
+
+    public int getLevelTimeLimit() {
+        return levelTimeLimit;
+    }
+
+    public void setLevelTimeLimit(int levelTimeLimit) {
+        this.levelTimeLimit = levelTimeLimit;
+    }
+
+    public int getLevelDistanceLimit() {
+        return levelDistanceLimit;
+    }
+
+    public void setLevelDistanceLimit(int levelDistanceLimit) {
+        this.levelDistanceLimit = levelDistanceLimit;
     }
 
 }
